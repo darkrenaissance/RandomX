@@ -1,0 +1,17 @@
+[package]
+name = "randomx"
+version = "1.1.11"
+homepage = "https://github.com/tevador/RandomX/"
+authors = [
+    "Dyne.org Foundation <foundation@dyne.org>",
+    "tevador <tevador@gmail.com>",
+    "The Monero Project",
+]
+license = "BSD-3-Clause"
+edition = "2021"
+
+[build-dependencies]
+bindgen = "0.66.1"
+
+[dependencies]
+bitflags = "1"
