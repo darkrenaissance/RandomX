@@ -1,0 +1,20 @@
+[package]
+name = "randomx"
+version = "1.2.1"
+homepage = "https://github.com/tevador/RandomX/"
+authors = [
+    "Dyne.org Foundation <foundation@dyne.org>",
+    "tevador <tevador@gmail.com>",
+    "The Monero Project",
+]
+license = "BSD-3-Clause"
+edition = "2021"
+
+[target.'cfg(not(target = "x86_64-unknown-linux-musl"))'.build-dependencies]
+bindgen = "0.71.1"
+ 
+[target.'cfg(target = "x86_64-unknown-linux-musl")'.build-dependencies]
+bindgen = {version = "0.71.1", default-features = false, features = ["static"]}
+
+[dependencies]
+bitflags = "2.8.0"
