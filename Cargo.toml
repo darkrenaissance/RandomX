@@ -10,8 +10,11 @@ authors = [
 license = "BSD-3-Clause"
 edition = "2021"
 
-[build-dependencies]
-bindgen = "0.66.1"
+[target.'cfg(not(target = "x86_64-unknown-linux-musl"))'.build-dependencies]
+bindgen = "0.69.4"
+ 
+[target.'cfg(target = "x86_64-unknown-linux-musl")'.build-dependencies]
+bindgen = {version = "0.69.4", default-features = false, features = ["static"]}
 
 [dependencies]
 bitflags = "1"
