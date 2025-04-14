@@ -52,6 +52,8 @@ fn main() {
         println!("cargo:rustc-link-lib=dylib=c++");
     } else if target.contains("linux") {
         println!("cargo:rustc-link-lib=dylib=stdc++");
+    } else if target.contains("freebsd") {
+        println!("cargo:rustc-link-lib=dylib=c++");
     } else {
         unimplemented!()
     }
