@@ -11,10 +11,15 @@ license = "BSD-3-Clause"
 edition = "2021"
 
 [target.'cfg(not(target = "x86_64-unknown-linux-musl"))'.build-dependencies]
-bindgen = "0.71.1"
+bindgen = "0.71"
  
 [target.'cfg(target = "x86_64-unknown-linux-musl")'.build-dependencies]
-bindgen = {version = "0.71.1", default-features = false, features = ["static"]}
+bindgen = {version = "0.71", default-features = false, features = ["static"]}
 
 [dependencies]
-bitflags = "2.8.0"
+bitflags = "2.8"
+libc = "0.2"
+
+[dev-dependencies]
+anyhow = "1.0"
+hex = "0.4"
