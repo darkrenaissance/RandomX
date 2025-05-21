@@ -6,9 +6,13 @@ authors = [
     "Dyne.org Foundation <foundation@dyne.org>",
     "tevador <tevador@gmail.com>",
     "The Monero Project",
+    "The Tari Project",
 ]
 license = "BSD-3-Clause"
 edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
 
 [target.'cfg(not(target = "x86_64-unknown-linux-musl"))'.build-dependencies]
 bindgen = "0.71"
@@ -23,3 +27,6 @@ libc = "0.2"
 [dev-dependencies]
 anyhow = "1.0"
 hex = "0.4"
+
+[profile.release]
+lto = false

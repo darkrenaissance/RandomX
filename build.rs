@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    let target = env::var("TARGET").unwrap();
     let n_threads = std::thread::available_parallelism()
         .unwrap()
         .get()
@@ -48,14 +47,17 @@ fn main() {
     );
     println!("cargo:rustc-link-lib=static=randomx");
 
-    if target.contains("apple") {
-        println!("cargo:rustc-link-lib=dylib=c++");
-    } else if target.contains("linux") {
-        println!("cargo:rustc-link-lib=dylib=stdc++");
-    } else if target.contains("freebsd") {
-        println!("cargo:rustc-link-lib=dylib=c++");
-    } else {
-        unimplemented!()
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or("linux".to_string());
+    let dylib_name = match target_os.as_str() {
+        "freebsd" | "macos" | "ios" => "c++", // FreeBSD, MacOS, and iOS use "c++",
+        "windows" => "msvcrt",                // Use MSVC runtime on Windows
+        _ => "stdc++",                        // Default for other systems (Linux, etc.)
+    };
+
+    println!("cargo:rustc-link-lib=dylib={}", dylib_name);
+
+    if cfg!(target_os = "windows") {
+        println!("cargo:rustc-link-lib=advapi32");
     }
 
     // The bindgen::Builder is the main entry point
