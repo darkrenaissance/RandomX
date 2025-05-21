@@ -186,7 +186,7 @@ impl RandomXFactoryInner {
 fn main() {
     const NUM_THREADS: u32 = 8;
     // number of hashes to perform in each thread, not the total.
-    const NUM_HASHES: u32 = 100;
+    const NUM_HASHES: u32 = 10000;
 
     // Try adding `| RandomXFlags::LARGEPAGES`.
     let mut flags = RandomXFlags::get_recommended_flags() | RandomXFlags::FULLMEM;
@@ -196,31 +196,49 @@ fn main() {
         flags |= RandomXFlags::ARGON2_SSSE3;
     }
 
-    let factory = RandomXFactory::new_with_flags(1, flags);
+    let factory = RandomXFactory::new_with_flags(8, flags);
 
     let key = b"key";
 
     let start = Instant::now();
     let cache = RandomXCache::new(flags, &key[..]).unwrap();
-    let dataset = RandomXDataset::new(flags, cache, 0).unwrap();
-    println!("Initialized RandomX dataset in {:?}", start.elapsed());
+    let dataset_item_count = RandomXDataset::count().unwrap();
+    println!("Initialized RandomX cache in {:?}", start.elapsed());
 
     let mut handles = Vec::new();
     let start = Instant::now();
 
     for i in 0..NUM_THREADS {
         let factory = factory.clone();
-        let dataset = dataset.clone();
+
+        let ds_start = Instant::now();
+        let dataset = if NUM_THREADS > 1 {
+            let a = (dataset_item_count * i) / NUM_THREADS;
+            let b = (dataset_item_count * (i + 1)) / NUM_THREADS;
+            /*
+            println!("a={a}");
+            println!("b={b}");
+            println!("b-a={}", b - a);
+            */
+            RandomXDataset::new(flags, cache.clone(), a, b - a).unwrap()
+        } else {
+            RandomXDataset::new(flags, cache.clone(), 0, dataset_item_count).unwrap()
+        };
+        println!(
+            "Initialized RandomX dataset for thread #{i} in {:?}",
+            ds_start.elapsed()
+        );
+
         handles.push(thread::spawn(move || {
             let key = b"key";
             let vm = factory.create(&key[..], None, Some(dataset)).unwrap();
-            println!("Created VM #{}", i);
+            println!("Initialized RandomX VM #{i}");
 
             let mut nonce: u32 = i;
 
             for _ in 0..NUM_HASHES {
                 let _ = vm.calculate_hash(&nonce.to_be_bytes()[..]);
-                //println!("VM #{} calculated hash with nonce {}", i, nonce);
+                //println!("VM #{i} calculated hash with nonce {nonce}");
 
                 // e.g. thread 0 will use nonces 0, 8, 16, ...
                 // and thread 1 will use nonces 1, 9, 17, ...
@@ -234,8 +252,8 @@ fn main() {
     }
 
     println!(
-        "Completed {} hashes in {}ms",
+        "Completed {} hashes in {:?}",
         NUM_THREADS * NUM_HASHES,
-        start.elapsed().as_millis()
+        start.elapsed()
     );
 }

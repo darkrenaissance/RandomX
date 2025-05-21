@@ -271,9 +271,11 @@ impl RandomXDataset {
             inner: Arc::new(inner),
         };
 
+        /*
         if start_item >= item_count {
             return Err(RandomXError::DatasetAllocError);
         }
+        */
 
         unsafe {
             randomx_init_dataset(
@@ -283,7 +285,6 @@ impl RandomXDataset {
                 c_ulong::from(item_count),
             );
         }
-
         Ok(result)
     }
 
@@ -556,7 +557,8 @@ mod tests {
         let key = "Key";
         let cache = RandomXCache::new(flags, key.as_bytes()).unwrap();
         let dataset =
-            RandomXDataset::new(flags, cache.clone(), 0).expect("Failed to allocate dataset");
+            RandomXDataset::new(flags, cache.clone(), 0, RandomXDataset::count().unwrap())
+                .expect("Failed to allocate dataset");
         drop(dataset);
         drop(cache);
     }
@@ -569,7 +571,8 @@ mod tests {
         let mut vm =
             RandomXVM::new(flags, Some(cache.clone()), None).expect("Failed to allocate VM");
         drop(vm);
-        let dataset = RandomXDataset::new(flags, cache.clone(), 0).unwrap();
+        let dataset =
+            RandomXDataset::new(flags, cache.clone(), 0, RandomXDataset::count().unwrap()).unwrap();
         vm = RandomXVM::new(flags, Some(cache.clone()), Some(dataset.clone()))
             .expect("Failed to allocate VM");
         drop(dataset);
@@ -582,7 +585,8 @@ mod tests {
         let flags = RandomXFlags::default();
         let key = "Key";
         let cache = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset = RandomXDataset::new(flags, cache.clone(), 0).unwrap();
+        let dataset =
+            RandomXDataset::new(flags, cache.clone(), 0, RandomXDataset::count().unwrap()).unwrap();
         let memory = dataset.get_data().unwrap_or_else(|_| Vec::new());
         assert!(!memory.is_empty(), "Failed to get dataset memory");
         let v = vec![0u8; memory.len()];
@@ -614,7 +618,9 @@ mod tests {
         assert_eq!(hash2, hash3);
 
         let cache3 = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset3 = RandomXDataset::new(flags, cache3.clone(), 0).unwrap();
+        let dataset3 =
+            RandomXDataset::new(flags, cache3.clone(), 0, RandomXDataset::count().unwrap())
+                .unwrap();
         let mut vm3 = RandomXVM::new(flags2, None, Some(dataset3.clone())).unwrap();
         let hash4 = vm3.calculate_hash(input.as_bytes()).expect("no data");
         assert_ne!(hash3, v);
@@ -624,7 +630,9 @@ mod tests {
         assert_eq!(hash4, hash5);
 
         let cache4 = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset4 = RandomXDataset::new(flags, cache4.clone(), 0).unwrap();
+        let dataset4 =
+            RandomXDataset::new(flags, cache4.clone(), 0, RandomXDataset::count().unwrap())
+                .unwrap();
         let vm4 = RandomXVM::new(flags2, Some(cache4), Some(dataset4.clone())).unwrap();
         let hash6 = vm3.calculate_hash(input.as_bytes()).expect("no data");
         assert_eq!(hash5, hash6);
@@ -672,7 +680,8 @@ mod tests {
         let key = "Key";
         let input = "Input";
         let cache = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset = RandomXDataset::new(flags, cache.clone(), 0).unwrap();
+        let dataset =
+            RandomXDataset::new(flags, cache.clone(), 0, RandomXDataset::count().unwrap()).unwrap();
         let vm = RandomXVM::new(flags, Some(cache.clone()), Some(dataset.clone())).unwrap();
         let hash = vm.calculate_hash(input.as_bytes()).expect("no data");
         assert_eq!(
@@ -687,7 +696,9 @@ mod tests {
         drop(cache);
 
         let cache1 = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset1 = RandomXDataset::new(flags, cache1.clone(), 0).unwrap();
+        let dataset1 =
+            RandomXDataset::new(flags, cache1.clone(), 0, RandomXDataset::count().unwrap())
+                .unwrap();
         let vm1 = RandomXVM::new(flags, Some(cache1.clone()), Some(dataset1.clone())).unwrap();
         let hash1 = vm1.calculate_hash(input.as_bytes()).expect("no data");
         assert_eq!(
@@ -708,7 +719,8 @@ mod tests {
         let key = "Key";
         let input = "Input";
         let cache = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset = RandomXDataset::new(flags, cache.clone(), 0).unwrap();
+        let dataset =
+            RandomXDataset::new(flags, cache.clone(), 0, RandomXDataset::count().unwrap()).unwrap();
         let vm = RandomXVM::new(flags, Some(cache.clone()), Some(dataset.clone())).unwrap();
         drop(dataset);
         drop(cache);
@@ -723,7 +735,9 @@ mod tests {
         drop(vm);
 
         let cache1 = RandomXCache::new(flags, key.as_bytes()).unwrap();
-        let dataset1 = RandomXDataset::new(flags, cache1.clone(), 0).unwrap();
+        let dataset1 =
+            RandomXDataset::new(flags, cache1.clone(), 0, RandomXDataset::count().unwrap())
+                .unwrap();
         let vm1 = RandomXVM::new(flags, Some(cache1.clone()), Some(dataset1.clone())).unwrap();
         drop(dataset1);
         drop(cache1);
@@ -745,7 +759,10 @@ mod tests {
 
         let flags = RandomXFlags::get_recommended_flags() | RandomXFlags::FULLMEM;
         let cache = RandomXCache::new(flags, key).unwrap();
-        let dataset = RandomXDataset::new(flags, cache, 0).unwrap();
+
+        let dataset =
+            RandomXDataset::new(flags, cache, 0, RandomXDataset::count().unwrap()).unwrap();
+
         let fast_vm = RandomXVM::new(flags, None, Some(dataset)).unwrap();
 
         let flags = RandomXFlags::get_recommended_flags();
@@ -778,7 +795,10 @@ mod tests {
 
         let flags = RandomXFlags::get_recommended_flags() | RandomXFlags::FULLMEM;
         let cache = RandomXCache::new(flags, key).unwrap();
-        let dataset = RandomXDataset::new(flags, cache, 0).unwrap();
+
+        let dataset =
+            RandomXDataset::new(flags, cache, 0, RandomXDataset::count().unwrap()).unwrap();
+
         let vm = RandomXVM::new(flags, None, Some(dataset)).unwrap();
 
         for (input, expected) in vectors {
