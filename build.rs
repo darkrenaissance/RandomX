@@ -54,7 +54,7 @@ fn main() {
         _ => "stdc++",                        // Default for other systems (Linux, etc.)
     };
 
-    println!("cargo:rustc-link-lib=dylib={}", dylib_name);
+    println!("cargo:rustc-link-lib=dylib={dylib_name}");
 
     if cfg!(target_os = "windows") {
         println!("cargo:rustc-link-lib=advapi32");

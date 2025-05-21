@@ -80,8 +80,8 @@ impl std::fmt::Display for RandomXError {
             Self::DatasetAllocError => write!(f, "Failed to allocate RandomX dataset"),
             Self::DatasetReinitError => write!(f, "Can't reinit RandomX dataset w/o FULLMEM set"),
             Self::VmAllocError => write!(f, "Failed to allocate RandomX VM"),
-            Self::ParameterError(e) => write!(f, "{}", e),
-            Self::Other(e) => write!(f, "{}", e),
+            Self::ParameterError(e) => write!(f, "{e}"),
+            Self::Other(e) => write!(f, "{e}"),
         }
     }
 }
@@ -242,18 +242,20 @@ impl RandomXDataset {
     ///
     /// `cache` is a cache object.
     ///
-    /// `start` is the item number where initialization should start,
+    /// `start_item` is the item number where initialization should start,
     /// recommended to pass in 0.
+    ///
+    /// `item_count` is the total item count in the dataset, it can be
+    /// retrieved with `RandomXDataset::count()`.
     ///
     /// Conversions may be lossy on Windows or Linux.
     #[allow(clippy::useless_conversion)]
     pub fn new(
         flags: RandomXFlags,
         cache: RandomXCache,
-        start: u32,
+        start_item: u32,
+        item_count: u32,
     ) -> Result<RandomXDataset, RandomXError> {
-        let item_count = RandomXDataset::count()?;
-
         let test = unsafe { randomx_alloc_dataset(flags.bits()) };
         if test.is_null() {
             return Err(RandomXError::DatasetAllocError);
@@ -269,7 +271,7 @@ impl RandomXDataset {
             inner: Arc::new(inner),
         };
 
-        if start >= item_count {
+        if start_item >= item_count {
             return Err(RandomXError::DatasetAllocError);
         }
 
@@ -277,7 +279,7 @@ impl RandomXDataset {
             randomx_init_dataset(
                 result.inner.dataset_ptr,
                 result.inner.cache.inner.cache_ptr,
-                c_ulong::from(start),
+                c_ulong::from(start_item),
                 c_ulong::from(item_count),
             );
         }
